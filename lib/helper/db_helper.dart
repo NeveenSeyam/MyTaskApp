@@ -1,7 +1,8 @@
+import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'dart:async';
 import 'dart:io';
-import 'package:path_provider/path_provider.dart';
 import '../Models/Data.dart';
 
 class SQL_Helper {
@@ -34,7 +35,7 @@ class SQL_Helper {
     String path = directory.path + "task.db";
 
     var studentDB =
-        await openDatabase(path, version: 1, onCreate: createDatabase);
+        await openDatabase(path, version: 2, onCreate: createDatabase);
     return studentDB;
   }
 
@@ -46,13 +47,15 @@ class SQL_Helper {
   Future<List<Map<String, dynamic>>> getDataMapList() async {
     Database db = await this.database;
 
-    var result = await db.query(tableName);
+    //var result1 =  await db.rawQuery("SELECT * FROM $tableName ORDER BY $_id ASC");
+    var result = await db.query(tableName, orderBy: "$_id ASC");
     return result;
   }
 
   Future<List<Map<String, dynamic>>> getDataMapListCompleted() async {
     Database db = await this.database;
 
+    //var result1 =  await db.rawQuery("SELECT * FROM $tableName ORDER BY $_id ASC");
     var result = await db.query(
       tableName,
       where: "$__checkValue = ?",
@@ -60,22 +63,30 @@ class SQL_Helper {
     return result;
   }
 
-  Future<int> insertNewTask(Data data) async {
+  Future<int> insertStudent(Data data) async {
     Database db = await this.database;
     var result = await db.insert(tableName, data.toMap());
     return result;
   }
 
-  Future<int> updateTaskData(Data data) async {
+  Future<int> updateStudent(Data data) async {
     Database db = await this.database;
     var result = await db.update(tableName, data.toMap(),
         where: "$_id = ?", whereArgs: [data.id]);
     return result;
   }
 
-  Future<int> deleteTaskData(int id) async {
+  Future<int> deleteStudent(int id) async {
     var db = await this.database;
     int result = await db.rawDelete("DELETE FROM $tableName WHERE $_id = $id");
+    return result;
+  }
+
+  Future<int> getCount() async {
+    Database db = await this.database;
+    List<Map<String, dynamic>> all =
+        await db.rawQuery("SELECT COUNT (*) FROM $tableName");
+    int result = Sqflite.firstIntValue(all);
     return result;
   }
 
@@ -83,25 +94,25 @@ class SQL_Helper {
     var dataMapList = await getDataMapList();
     int count = dataMapList.length;
 
-    List<Data> task = new List<Data>();
+    List<Data> data = new List<Data>();
 
     for (int i = 0; i <= count - 1; i++) {
-      task.add(Data.getMap(dataMapList[i]));
+      data.add(Data.getMap(dataMapList[i]));
     }
-    return task;
+    return data;
   }
 
   Future<List<Data>> getTaskListCompleted() async {
     var dataMapList = await getDataMapList();
     int count = dataMapList.length;
 
-    List<Data> task = new List<Data>();
+    List<Data> students = new List<Data>();
 
     for (int i = 0; i <= count - 1; i++) {
-      task.add(Data.getMap(dataMapList[i]));
+      students.add(Data.getMap(dataMapList[i]));
     }
-    print(task.length);
-    final data = task.where((element) => element.checkValue == 1).toList();
+    print(students.length);
+    final data = students.where((element) => element.checkValue == 1).toList();
     print(data.length);
 
     return data;
@@ -111,13 +122,13 @@ class SQL_Helper {
     var dataMapList = await getDataMapList();
     int count = dataMapList.length;
 
-    List<Data> task = new List<Data>();
+    List<Data> students = new List<Data>();
 
     for (int i = 0; i <= count - 1; i++) {
-      task.add(Data.getMap(dataMapList[i]));
+      students.add(Data.getMap(dataMapList[i]));
     }
-    print(task.length);
-    final data = task.where((element) => element.checkValue == 0).toList();
+    print(students.length);
+    final data = students.where((element) => element.checkValue == 0).toList();
     print(data.length);
 
     return data;

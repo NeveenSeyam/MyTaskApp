@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import './home_list.dart';
 import './completed_list.dart';
 import './incompleted_list.dart';
 import '../Models/Data.dart';
 import '../helper/db_helper.dart';
+import '../provider/task_provider.dart';
 
 class TabsScreen extends StatefulWidget {
   @override
@@ -17,12 +19,15 @@ class _TabsScreenState extends State<TabsScreen> {
   SQL_Helper helper = new SQL_Helper();
   void save(String title, int checkVale) async {
     int result;
-    result = await helper.insertNewTask(Data(title, checkVale));
+    result = await helper.insertStudent(Data(title, checkVale));
 
     if (result == 0) {
       print("Task not saved");
       Navigator.pop(context);
     } else {
+      setState(() {
+        initialIndex = 2;
+      });
       print('Task  saved"');
       Navigator.pop(context);
       Navigator.push(
@@ -34,6 +39,8 @@ class _TabsScreenState extends State<TabsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final providerData = Provider.of<TaskProvider>(context, listen: false);
+
     return DefaultTabController(
       length: 3,
       initialIndex: initialIndex,
@@ -43,7 +50,7 @@ class _TabsScreenState extends State<TabsScreen> {
           bottom: TabBar(
             tabs: [
               Tab(
-                icon: Icon(Icons.category_outlined),
+                icon: Icon(Icons.category),
                 text: "Task List",
               ),
               Tab(
@@ -51,7 +58,7 @@ class _TabsScreenState extends State<TabsScreen> {
                 text: "Completed List   ",
               ),
               Tab(
-                icon: Icon(Icons.star_border),
+                icon: Icon(Icons.star),
                 text: "InCompleted List   ",
               ),
             ],
@@ -110,8 +117,14 @@ class _TabsScreenState extends State<TabsScreen> {
                                 child: const Text('Add Task'),
                                 onPressed: () {
                                   setState(() {
-                                    save(addTitleContrler.text,
+                                    providerData.addTask(addTitleContrler.text,
                                         addNewTaskCheckValue == true ? 1 : 0);
+                                    Navigator.pop(context);
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => TabsScreen()),
+                                    );
                                   });
                                 },
                               )
